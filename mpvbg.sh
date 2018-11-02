@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
-
+WIDTH=$(xrandr --current | sed -r -n 's/.*current ([0-9]+) x ([0-9]+).*/\1/p')
+HEIGHT=$(xrandr --current | sed -r -n 's/.*current ([0-9]+) x ([0-9]+).*/\2/p')
 MONITORS=$(xrandr --current | sed -r -n 's/.*connected (primary )?([0-9]+)x([0-9]+)\+([0-9]+)\+([0-9]+).*/vec4(\4.0,\5.0,\2.0,\3.0),/p' | sed '$ s/.$//')
 MONITOR_COUNT=$(xrandr --current | sed -r -n 's/.*connected (primary )?([0-9]+)x([0-9]+)\+([0-9]+)\+([0-9]+).*/vec4(\4.0,\5.0,\2.0,\3.0),/p' | wc -l)
 echo $MONITORS
@@ -9,6 +10,8 @@ echo "
 //!HOOK MAIN
 //!BIND MAIN
 //!SAVE MAIN
+//!WIDTH $WIDTH
+//!HEIGHT $HEIGHT
 vec4 monitors[$MONITOR_COUNT] = vec4[]($MONITORS);
 
 bool isWithinMonitorBounds(vec2 p, vec4 monitor) {
