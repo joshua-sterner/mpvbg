@@ -7,12 +7,46 @@ USAGE="usage: mpvbg.sh [OPTIONS] -- [MPV_OPTIONS]
     -s, --stretch   Disables aspect ratio correction.
     -c, --crop      Crops off the edges of the video to correct
                       the aspect ratio.
-    -h, --help      Show this usage information."
+    -h, --help      Show this usage information.
+    
+    config file ~/.mpvbgrc can be used to pass options to this
+      command and/or to mpv. The expected format of ~/.mpvbgrc
+      is as follows:
+
+    [mpvbg]
+    --mpvbg_option
+    [mpv]
+    --mpv_option
+    "
+MPVBG_OPTIONS="" 
+MPV_OPTIONS=""
+MPVBGRC_SECTION=""
+while read -u 3 line;
+do
+    case `echo $line | sed -r 's/^\s*\[(mpv(bg)?)\]\s*$/\1/'` in
+        mpvbg)
+            MPVBGRC_SECTION=mpvbg
+            ;;
+        mpv)
+            MPVBGRC_SECTION=mpv
+            ;;
+        *)
+            case $MPVBGRC_SECTION in
+                mpvbg)
+                    MPVBG_OPTIONS="$MPVBG_OPTIONS $line"
+                    ;;
+                mpv)
+                    MPV_OPTIONS="$MPV_OPTIONS $line"
+                    ;;
+            esac
+            ;;
+    esac
+done 3<~/.mpvbgrc
 
 ASPECT_RATIO_OPTION=fit
 GET_MPV_OPTIONS=false
-MPV_OPTIONS=""
-for option in $@
+MPVBG_OPTIONS="$MPVBG_OPTIONS $@"
+for option in $MPVBG_OPTIONS
 do
     if $GET_MPV_OPTIONS
     then
@@ -36,7 +70,7 @@ do
             GET_MPV_OPTIONS=true
             ;;
         *)
-            echo Invalid Options
+            echo Invalid Options in command line or config file ~/.mpvbgrc
             echo "$USAGE"
             exit
             ;;
@@ -112,7 +146,6 @@ vec4 hook() {
     }
     return MAIN_tex(pos3);
 }" > $SHADERFILE
-
 
 xwinwrap -ni -b -ov -fs -- mpv -fs --keepaspect=no -wid=$(xwinwrap -- echo WID) --glsl-shader=$SHADERFILE $MPV_OPTIONS
 
